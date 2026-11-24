@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Express Demo</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 720px;
+        margin: 40px auto;
+        padding: 0 16px;
+        color: #222;
+        line-height: 1.6;
+      }
+      section {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 16px;
+        margin-top: 16px;
+      }
+      h1 {
+        margin-bottom: 4px;
+      }
+      h2 {
+        margin: 0 0 12px;
+        font-size: 16px;
+      }
+      input {
+        padding: 6px 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+      }
+      button {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 6px;
+        background: #2563eb;
+        color: #fff;
+        cursor: pointer;
+      }
+      button.secondary {
+        background: #6b7280;
+      }
+      button.danger {
+        background: #dc2626;
+        margin-left: 8px;
+      }
+      li {
+        margin: 6px 0;
+      }
+      #output {
+        background: #111827;
+        color: #d1fae5;
+        padding: 12px;
+        border-radius: 8px;
+        min-height: 80px;
+        overflow: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Express Demo</h1>
+    <p>
+      这个页面由 <code>express.static</code> 直接提供，页面里的按钮会调用后端接口。
+    </p>
+
+    <section>
+      <h2>用户列表（GET /api/users）</h2>
+      <input id="keyword" placeholder="按名字搜索，如：张" />
+      <button id="search">搜索</button>
+      <button class="secondary" id="load">加载全部</button>
+      <ul id="list"></ul>
+    </section>
+
+    <section>
+      <h2>新增用户（POST /api/users）</h2>
+      <input id="name" placeholder="输入名字" />
+      <button id="add">新增</button>
+      <p>
+        <small>写操作需要请求头 Authorization: Bearer demo-token，页面里已经自动带上。</small>
+      </p>
+    </section>
+
+    <section>
+      <h2>其他</h2>
+      <button class="danger" id="boom">触发一个错误（GET /api/boom）</button>
+      <button class="secondary" id="notFound">访问不存在的接口（404）</button>
+    </section>
+
+    <h2>响应结果</h2>
+    <pre id="output">点上面的按钮看看结果</pre>
+
+    <script>
+      const TOKEN = 'Bearer demo-token'
+
+      function show(result) {
+        document.getElementById('output').textContent = JSON.stringify(result, null, 2)
+      }
+
+      // 统一封装 fetch：打印状态码和响应内容
+      async function request(url, options = {}) {
+        const res = await fetch(url, options)
+        const body = res.status === 204 ? null : await res.json()
+        show({ status: res.status, body })
+        return body
+      }
+
+      async function loadUsers(keyword = '') {
+        const query = keyword ? `?keyword=${encodeURIComponent(keyword)}` : ''
+        const users = await request(`/api/users${query}`)
+        if (!Array.isArray(users)) return
+
+        const list = document.getElementById('list')
+        list.innerHTML = ''
+
+        for (const user of users) {
+          const li = document.createElement('li')
+          li.textContent = `${user.id} - ${user.name}`
+
+          const del = document.createElement('button')
+          del.className = 'danger'
+          del.textContent = '删除'
+          del.onclick = async () => {
+            await request(`/api/users/${user.id}`, {
+              method: 'DELETE',
+              headers: { Authorization: TOKEN },
+            })
+            loadUsers(document.getElementById('keyword').value.trim())
+          }
+
+          li.appendChild(del)
+          list.appendChild(li)
+        }
+      }
+
+      document.getElementById('load').onclick = () => loadUsers()
+      document.getElementById('search').onclick = () =>
+        loadUsers(document.getElementById('keyword').value.trim())
+
+      document.getElementById('add').onclick = async () => {
+        const input = document.getElementById('name')
+        const name = input.value.trim()
+        if (!name) return
+
+        await request('/api/users', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: TOKEN,
+          },
+          body: JSON.stringify({ name }),
+        })
+
+        input.value = ''
+        loadUsers()
+      }
+
+      document.getElementById('boom').onclick = () => request('/api/boom')
+      document.getElementById('notFound').onclick = () => request('/api/not-exist')
+
+      loadUsers()
+    </script>
+  </body>
+</html>
