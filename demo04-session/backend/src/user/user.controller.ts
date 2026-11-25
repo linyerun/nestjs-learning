@@ -3,7 +3,6 @@ import { UserService } from './user.service.js';
 import type { Request, Response } from 'express';
 import svgCaptcha from 'svg-captcha';
 import { CreateUserDto } from './dto/create-user.dto.js';
-import session from 'express-session';
 
 @Controller('user')
 export class UserController {
