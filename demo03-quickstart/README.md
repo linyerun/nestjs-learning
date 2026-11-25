@@ -1,3 +1,21 @@
+# 个人笔记
+
+```ts
+// PartialType函数的作用: 传入一个类, 生成新类，所有属性可选
+import { PartialType } from '@nestjs/mapped-types';
+import { CreateUserDto } from './create-user.dto.js';
+
+export class UpdateUserDto extends PartialType(CreateUserDto) {}
+```
+
+```bash
+nest --help # 查看nest脚本支持的指令
+
+nest g res user # 生成一个user模块的CRUD模版
+```
+
+---
+
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
