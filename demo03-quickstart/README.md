@@ -14,6 +14,47 @@ nest --help # 查看nest脚本支持的指令
 nest g res user # 生成一个user模块的CRUD模版
 ```
 
+## 给api加版本
+```ts
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module.js';
+import { VersioningType } from '@nestjs/common';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  app.enableVersioning({
+    type: VersioningType.URI, // 在uri上携带api版本
+    prefix: 'v', // 默认前缀是v
+  });
+  app.setGlobalPrefix('/api'); // 给请求路径加个公共前缀
+  await app.listen(process.env.PORT ?? 3000);
+}
+await bootstrap();
+```
+```ts
+import {
+  Controller,
+  Get,
+  Version,
+} from '@nestjs/common';
+import { RoleService } from './role.service.js';
+
+@Controller({
+  path: 'role',
+  version: '1', // 控制器全局版本
+})
+export class RoleController {
+  constructor(private readonly roleService: RoleService) {}
+
+  @Get()
+  @Version('2') // 方法版本
+  findAll() {
+    return this.roleService.findAll();
+  }
+}
+
+```
+
 ---
 
 <p align="center">
