@@ -8,6 +8,28 @@ import { usersRouter } from "./routes/users";
 
 const app = express();
 
+// 得出结果: 第三个中间件, 不调用next,不会继续往下执行了,然后在应用层任务就全部完成了
+// 为什么在浏览器出现卡住的效果呢?
+//  因为响应只有 res.end() 才真正发出去。res 是 socket 的包装，不写它，socket 就一直开着，客户端收不到任何字节，只能等
+//  我们调用多次发生end()也会出问题报错的,比如: 调用两次res.json()
+// 结束响应：调用 res.send() / res.json() / res.end() / res.redirect() 等
+app.use((req: Request, res: Response, next: NextFunction) => {
+  console.log("u1 prev");
+  next();
+  console.log("u1 next");
+});
+app.use((req: Request, res: Response, next: NextFunction) => {
+  console.log("u2 prev");
+  next();
+  console.log("u2 next");
+});
+app.use((req: Request, res: Response, next: NextFunction) => {
+  console.log("全局中间件");
+  // 不调用next,看看请求是否会被阻塞
+  // res.json({message: "1"})
+  // res.json({message: "2"})
+});
+
 app.get("/a", (req, res, next) => {
   res.json({ message: "Hello World!" });
   // 不调用next, 后面都不会被执行
