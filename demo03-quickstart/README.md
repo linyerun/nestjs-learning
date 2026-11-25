@@ -122,8 +122,34 @@ export class RoomController {
 ```
 
 
+## Cookie and Session
+> Cookie
+```mermaid
+sequenceDiagram
+    participant B as 浏览器
+    participant S as 服务器
+    Note over B,S: Cookie存放少量业务数据
+    B->>S: 首次请求
+    S-->>B: 响应头 Set-Cookie
+    Note over B: 浏览器本地存储Cookie
+    B->>S: 后续请求自动带上Cookie
+    S-->>B: 读取Cookie，返回响应
+```
 
-
+> Session
+```mermaid
+sequenceDiagram
+    participant B as 浏览器
+    participant S as 服务器
+    Note over B,S: 首次请求（无Cookie）
+    B->>S: HTTP请求
+    S-->>B: 响应头 Set-Cookie: SESSIONID=xxx
+    Note over B: 浏览器保存Cookie
+    Note over B,S: 后续请求
+    B->>S: 请求自动带上 Cookie: SESSIONID=xxx
+    Note over S: 根据SESSIONID读取服务端Session数据
+    S-->>B: 返回业务响应
+```
 
 ---
 
