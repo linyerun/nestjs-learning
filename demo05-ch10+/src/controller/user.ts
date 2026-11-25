@@ -11,7 +11,7 @@ export class User {
   ) {}
 
   @Get('/1')
-  get() {
+  get1() {
     return this.lyrService.get();
   }
 
@@ -23,5 +23,15 @@ export class User {
   @Get('/3')
   get3() {
     return this.dyVal;
+  }
+
+  @Get('/api/4/xxx')
+  get4() {
+    return '1111';
+  }
+
+  @Get('/api')
+  get5() {
+    return '222';
   }
 }
