@@ -11,12 +11,16 @@ import { DaoModule } from '@/dao/dao.module.js';
 import { DyModule } from '@/dynamic/dy.module.js';
 import { User } from '@/controller/user.js';
 import { Logger } from '@/middlewares/logger.js';
+import { UploadModule } from './upload/upload.module.js';
+import { DownloadModule } from './download/download.module.js';
 
 @Module({
   imports: [
     CtlModule,
     DaoModule,
     DyModule.dynamicModule({ path: '/va', name: 'lyr' }),
+    UploadModule,
+    DownloadModule,
   ],
   controllers: [AppController],
   providers: [AppService],

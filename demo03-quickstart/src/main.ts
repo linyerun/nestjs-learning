@@ -9,6 +9,7 @@ async function bootstrap() {
     prefix: 'v', // 默认前缀是v
   });
   app.setGlobalPrefix('/api'); // 给请求路径加个公共前缀
+  app.enableCors(); // 允许跨域
   await app.listen(process.env.PORT ?? 3000);
 }
 await bootstrap();
