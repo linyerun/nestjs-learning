@@ -1,4 +1,7 @@
 # 个人笔记
+## 异常拦截器
+- 使用的时候通过@Catch里面写可以捕获的异常类，不写就是捕获全部，然后就是在异常拦截器的实现方法中一定要使用resp返回结果，不要return，因为return返回的内容不会被受理的
+
 ## 关于装饰器的使用注意事项
 - 一个类会被别的类 constructor 注入 → 加 @Injectable()；
 - 这个类只有本模块用 → 放进本模块 providers，到此为止；
@@ -7,7 +10,66 @@
 - 一个类构造器上依赖别的类  → 加 @Injectable();
 - 如果这个类不被别人依赖无需写到providers上
 
-## 中间件-拦截器-管道-守卫 执行顺序
+## 中间件-拦截器-管道-守卫-异常拦截器 执行顺序
+1. 中间件前置（M1 → M2）
+2. Guard
+3. InterceptorA 前置
+4. InterceptorB 前置
+5. Pipe
+6. Controller
+   ✅ 正常返回回溯：
+   Controller → InterceptorB 后置 → InterceptorA 后置 → 中间件后置（M2 → M1）
+
+❌ 任意环节抛异常（Guard / Pipe / Controller）：
+直接中断正常链路，**不再走剩下的前置、也不走拦截器后置 map**，进入异常过滤器匹配逻辑；
+1. 异常过滤器：**就近 + 更具体优先，匹配命中并响应后终止；Filter 内部再 throw 则继续冒泡重新匹配**
+2. `@Catch(xxx)` 写的越具体，优先级越高
+    - `@Catch(BadRequestException)` > `@Catch(HttpException)` > `@Catch()`（空注解，捕获所有异常）
+3. 作用域优先级：**方法上装饰器 > Controller 装饰器 > 全局过滤器**
+4. 一旦异常被某一个过滤器的 `catch` 处理并且**返回了响应**，链路终止，不再尝试其他过滤器
+```mermaid
+sequenceDiagram
+    participant Client as 客户端
+    participant Middleware as 中间件(M1,M2)
+    participant Guard as 守卫 Guard
+    participant InterA as 拦截器A
+    participant InterB as 拦截器B
+    participant Pipe as 管道 Pipe
+    participant Controller as Controller/Service
+    participant Filter as 异常过滤器 ExceptionFilter
+
+    Client->>Middleware: 发起请求
+    Note over Middleware: 洋葱：M1前置 → M2前置
+    Middleware->>Guard: 放行
+    alt Guard抛出异常
+        Guard-->>Filter: 异常冒泡，匹配过滤器
+        Filter-->>Client: 返回错误响应
+    else Guard校验通过
+        Guard->>InterA: 进入拦截器A
+        Note over InterA: InterceptorA 前置逻辑（next.handle()之前）
+        InterA->>InterB: 进入拦截器B
+        Note over InterB: InterceptorB 前置逻辑
+        InterB->>Pipe: 放行
+        alt Pipe抛出异常
+            Pipe-->>Filter: 异常冒泡，匹配过滤器
+            Filter-->>Client: 返回错误响应
+        else Pipe校验转换通过
+            Pipe->>Controller: 执行控制器业务
+            alt 业务正常return
+                Controller-->>InterB: 返回结果（进入Rx流）
+                Note over InterB: InterceptorB 后置 map包装
+                InterB-->>InterA: 回传
+                Note over InterA: InterceptorA 后置处理
+                InterA-->>Middleware: 回到中间件后置
+                Note over Middleware: M2后置 → M1后置
+                Middleware-->>Client: 返回成功响应
+            else 业务throw异常
+                Controller-->>Filter: 异常冒泡，匹配过滤器
+                Filter-->>Client: 返回错误响应
+            end
+        end
+    end
+```
 
 
 ## Module使用
