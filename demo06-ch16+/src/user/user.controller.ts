@@ -14,7 +14,7 @@ import { MyFilter3 } from '@/expfilters/filter3.js';
 import { GenUserIdPipe } from '@/user/user.pipe.js';
 import { UserGuard } from '@/user/user.guard.js';
 import { MethodGuard } from '@/method.guard.js';
-import { User } from './user.decorator.js';
+import { User, UserParams, CombineDecorators } from './user.decorator.js';
 
 @User(['UserController'])
 @UseGuards(UserGuard)
@@ -47,6 +47,24 @@ export class UserController {
   pipe2(@Query('id', GenUserIdPipe) id: string) {
     return {
       id: id,
+    };
+  }
+
+  @Get('/decorator/:id')
+  myDecorator(
+    @UserParams(['params', 'id', '0'], ParseIntPipe) id: number,
+    @UserParams(['query', 'name', 'lyr']) name: string,
+  ) {
+    return {
+      id: id,
+      name: name,
+    };
+  }
+
+  @CombineDecorators
+  myDecorator2() {
+    return {
+      msg: '组合装饰器',
     };
   }
 }
