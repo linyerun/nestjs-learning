@@ -8,14 +8,16 @@ import {
   ParseIntPipe,
   Query,
   UseGuards,
+  UsePipes,
 } from '@nestjs/common';
 import { MyFilter2 } from '@/expfilters/filter2.js';
 import { MyFilter3 } from '@/expfilters/filter3.js';
-import { GenUserIdPipe } from '@/user/user.pipe.js';
+import { CtlPipe, MethodPipe, GenUserIdPipe } from '@/user/user.pipe.js';
 import { UserGuard } from '@/user/user.guard.js';
 import { MethodGuard } from '@/method.guard.js';
 import { User, UserParams, CombineDecorators } from './user.decorator.js';
 
+@UsePipes(CtlPipe)
 @User(['UserController'])
 @UseGuards(UserGuard)
 @UseFilters(MyFilter2)
@@ -34,6 +36,7 @@ export class UserController {
   }
 
   // ParseIntPipe 内置管道, 把类型转number
+  @UsePipes(MethodPipe)
   @User(['get1', 'user'])
   @Get('/pipe/:id')
   pipe1(@Param('id', ParseIntPipe) id: number) {
@@ -42,6 +45,7 @@ export class UserController {
     };
   }
 
+  @UsePipes(MethodPipe)
   @UseGuards(MethodGuard)
   @Get('/pipe/gen/id')
   pipe2(@Query('id', GenUserIdPipe) id: string) {
