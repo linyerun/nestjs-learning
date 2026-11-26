@@ -13,7 +13,7 @@ export class MyFilter3 implements ExceptionFilter {
     const req = host.switchToHttp().getRequest<Request>();
     const resp = host.switchToHttp().getResponse<Response>();
     console.log(`[MyFilter3] Method Filter`);
-    console.log(exception);
+    // console.log(exception);
     if (exception instanceof HttpException) {
       resp.json({
         message: exception.message,

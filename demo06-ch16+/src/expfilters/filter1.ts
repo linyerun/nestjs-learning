@@ -12,7 +12,7 @@ export class MyFilter1 implements ExceptionFilter {
     const req = host.switchToHttp().getRequest<Request>();
     const resp = host.switchToHttp().getResponse<Response>();
     console.log(`[MyFilter1] Global Filter`);
-    console.log(exception);
+    // console.log(exception);
     if (exception instanceof HttpException) {
       resp.json({
         message: exception.message,
