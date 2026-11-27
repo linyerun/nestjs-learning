@@ -1,4 +1,11 @@
-import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  Index,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { Tag } from '@/entities/tag.entity.js';
 
 @Entity()
 export class User {
@@ -11,4 +18,7 @@ export class User {
 
   @Column('varchar', { length: 4096 })
   desc: string;
+
+  @OneToMany(() => Tag, (tag) => tag.user)
+  tags: Tag[];
 }

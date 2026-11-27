@@ -7,6 +7,7 @@ import {
   getList,
   type User,
   type SearchUserOptions,
+  addTags,
 } from "./server/api.ts";
 const total = ref<number>(0);
 //搜索框
@@ -67,6 +68,16 @@ const edit = (row: any) => {
 const close = () => {
   dialogVisible.value = false;
 };
+// tag弹窗
+const showTagDialog = ref(false);
+const tags = ref<string[]>([]);
+const uid = ref<number>(0);
+const addTag = async () => {
+  const res = await addTags(uid.value, tags.value);
+  console.log(res);
+  showTagDialog.value = false;
+  tags.value = [];
+};
 </script>
 
 <template>
@@ -86,6 +97,9 @@ const close = () => {
         <template #default="scope">
           <el-button @click="edit(scope.row)">编辑</el-button>
           <el-button @click="deleteRow(scope.row)">删除</el-button>
+          <el-button @click="((showTagDialog = true), (uid = scope.row.id))"
+            >添加tag</el-button
+          >
         </template>
       </el-table-column>
     </el-table>
@@ -111,6 +125,16 @@ const close = () => {
         <el-button @click="close">关闭</el-button>
         <el-button type="primary" @click="save"> 保存 </el-button>
       </span>
+    </template>
+  </el-dialog>
+  <el-dialog v-model="showTagDialog" title="添加tag">
+    <el-select style="width: 100%" v-model="tags" multiple>
+      <el-option value="tag1">tag1</el-option>
+      <el-option value="tag2">tag2</el-option>
+      <el-option value="tag3">tag3</el-option>
+    </el-select>
+    <template #footer>
+      <el-button @click="addTag" type="primary">确定</el-button>
     </template>
   </el-dialog>
 </template>

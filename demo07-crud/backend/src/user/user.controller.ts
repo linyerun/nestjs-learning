@@ -7,10 +7,13 @@ import {
   Param,
   Delete,
   Query,
+  DefaultValuePipe,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { UserService } from './user.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
+import { Tag } from '@/entities/tag.entity.js';
 
 @Controller('user')
 export class UserController {
@@ -23,9 +26,11 @@ export class UserController {
 
   @Get()
   async findAll(
-    @Query() query: { keyword: string; page: number; pageSize: number },
+    @Query('keyword', new DefaultValuePipe('')) keyword: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe) pageSize: number,
   ) {
-    return await this.userService.findAll(query);
+    return await this.userService.findAll({ keyword, page, pageSize });
   }
 
   @Get(':id')
@@ -41,5 +46,10 @@ export class UserController {
   @Delete(':id')
   async remove(@Param('id') id: string) {
     return await this.userService.remove(+id); //+id,让id强制转成number
+  }
+
+  @Post('/:id/tags')
+  addTags(@Body() tags: string[], @Param('id') userId: number) {
+    return this.userService.addTags({ tags, userId });
   }
 }

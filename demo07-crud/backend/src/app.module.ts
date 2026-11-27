@@ -14,7 +14,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       host: 'localhost', //host
       port: 3306, //
       database: 'nest_crud', //库名
-      entities: [import.meta.dirname + '/**/*.entity{.ts,.js}'], // 查询实体文件(nest start 会先编译到 dist/ 再运行 dist/main.js，所以 import.meta.dirname = backend/dist。这行字符串实际是 backend/dist/**/*.entity{.ts,.js}。)
+      // entities: [import.meta.dirname + '/**/*.entity{.ts,.js}'], // 查询实体文件(nest start 会先编译到 dist/ 再运行 dist/main.js，所以 import.meta.dirname = backend/dist。这行字符串实际是 backend/dist/**/*.entity{.ts,.js}。)
       synchronize: true, //是否自动将实体类同步到数据库
       retryDelay: 500, //重试连接数据库间隔
       retryAttempts: 3, //重试连接数据库的次数

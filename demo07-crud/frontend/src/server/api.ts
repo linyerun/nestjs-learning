@@ -25,3 +25,6 @@ export const delUser = (id: number) =>
 
 export const updateUser = (data: Partial<User>) =>
   axios.patch(`/user/${data.id}`, data).then((res) => res.data);
+
+export const addTags = (id: number, tags: string[]) =>
+  axios.post(`/user/${id}/tags`, tags).then((res) => res.data);

@@ -1,14 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 import { Like, Repository } from 'typeorm';
 import { User } from '@/entities/user.entity.js';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Tag } from '@/entities/tag.entity.js';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private readonly userRepo: Repository<User>,
+    @InjectRepository(Tag) private readonly tagRepo: Repository<Tag>,
   ) {}
 
   create(createUserDto: CreateUserDto) {
@@ -23,6 +25,7 @@ export class UserService {
       where: {
         name: Like(`%${query.keyword}%`),
       },
+      relations: { tags: true },
       order: {
         id: 'DESC',
       },
@@ -50,5 +53,23 @@ export class UserService {
 
   remove(id: number) {
     return this.userRepo.delete(id);
+  }
+
+  async addTags(params: { tags: string[]; userId: number }) {
+    const userInfo = await this.userRepo.findOne({
+      where: { id: params.userId },
+    });
+    if (!userInfo) {
+      throw new NotFoundException();
+    }
+    const tags: Tag[] = [];
+    for (let i = 0; i < params.tags.length; i++) {
+      let tag = new Tag();
+      tag.tag = params.tags[i];
+      await this.tagRepo.save(tag);
+      tags.push(tag);
+    }
+    userInfo.tags = tags;
+    return this.userRepo.save(userInfo);
   }
 }
