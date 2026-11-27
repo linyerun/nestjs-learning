@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 import { Like, Repository } from 'typeorm';
@@ -71,5 +75,43 @@ export class UserService {
     }
     userInfo.tags = tags;
     return this.userRepo.save(userInfo);
+  }
+
+  async transfer({
+    from,
+    to,
+    amount,
+  }: {
+    from: number;
+    to: number;
+    amount: number;
+  }) {
+    if (!Number.isInteger(amount) || amount <= 0) {
+      throw new BadRequestException('转账金额必须为正整数');
+    }
+    if (from === to) {
+      throw new BadRequestException('不能给自己转账');
+    }
+    // 读余额、校验、扣加款必须和事务的锁一起做，事务外先读会读到过期余额
+    return this.userRepo.manager.transaction(async (mgr) => {
+      const u1 = await mgr.findOne(User, {
+        where: { id: from },
+        lock: { mode: 'pessimistic_write' },
+      });
+      const u2 = await mgr.findOne(User, {
+        where: { id: to },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!u1 || !u2) {
+        throw new NotFoundException('用户不存在');
+      }
+      if (u1.amount < amount) {
+        throw new BadRequestException('余额不足');
+      }
+      u1.amount -= amount;
+      u2.amount += amount;
+      await mgr.save([u1, u2]);
+      return { from: u1, to: u2 };
+    });
   }
 }

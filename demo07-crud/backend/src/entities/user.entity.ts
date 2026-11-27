@@ -19,6 +19,9 @@ export class User {
   @Column('varchar', { length: 4096 })
   desc: string;
 
+  @Column({ default: 0 })
+  amount: number;
+
   @OneToMany(() => Tag, (tag) => tag.user)
   tags: Tag[];
 }

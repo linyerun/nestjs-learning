@@ -13,7 +13,6 @@ import {
 import { UserService } from './user.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
-import { Tag } from '@/entities/tag.entity.js';
 
 @Controller('user')
 export class UserController {
@@ -38,6 +37,12 @@ export class UserController {
     return await this.userService.findOne(+id);
   }
 
+  // 必须声明在 @Patch(':id') 之前，否则 /user/transfer 会被 :id 抢走匹配（id 变成 "transfer"）
+  @Patch('/transfer')
+  async transfer(@Body() data: { from: number; to: number; amount: number }) {
+    return await this.userService.transfer(data);
+  }
+
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return await this.userService.update(+id, updateUserDto);
@@ -49,7 +54,7 @@ export class UserController {
   }
 
   @Post('/:id/tags')
-  addTags(@Body() tags: string[], @Param('id') userId: number) {
-    return this.userService.addTags({ tags, userId });
+  async addTags(@Body() tags: string[], @Param('id') userId: number) {
+    return await this.userService.addTags({ tags, userId });
   }
 }
